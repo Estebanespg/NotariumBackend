@@ -17,10 +17,9 @@ datasource db {
 model User {
   id       String @id @default(uuid()) @db.Uuid
   email    String @unique @db.VarChar(255)
-  name     String @db.VarChar(150)
   password String @db.VarChar(255)
 
-  subjects Subject[]
+  students Student[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -28,21 +27,38 @@ model User {
   @@map("users")
 }
 
-// Subject
-model Subject {
+// Student
+model Student {
   id   String @id @default(uuid()) @db.Uuid
   name String @db.VarChar(150)
 
   userId String @map("user_id") @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  subjects Subject[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("students")
+}
+
+// Subject
+model Subject {
+  id   String @id @default(uuid()) @db.Uuid
+  name String @db.VarChar(150)
+
+  studentId String @map("student_id") @db.Uuid
+  student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
   grades Grade[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([userId, name], name: "uq_subject_per_user")
-  @@index([userId])
+  @@unique([studentId, name], name: "uq_subject_per_student")
+  @@index([studentId])
   @@map("subjects")
 }
 
