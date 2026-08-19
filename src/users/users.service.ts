@@ -3,11 +3,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma } from 'generated/prisma/client';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
-  
+
   async create(createUserDto: CreateUserDto) {
     try {
       const saltRounds = 10;
@@ -18,14 +19,16 @@ export class UsersService {
 
       return await this.prisma.user.create({
         data: {
-          username: username,
+          email: createUserDto.email,
           password: hashedPassword,
         },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new Error(`User with username ${username} already exists`);
+          throw new Error(
+            `User with email ${createUserDto.email} already exists`,
+          );
         }
       }
       throw error;
