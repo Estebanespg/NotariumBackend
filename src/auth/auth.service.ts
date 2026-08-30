@@ -28,7 +28,7 @@ export class AuthService {
       };
     } catch (error: any) {
       if (error.message?.includes('already exists')) {
-        throw new ConflictException('The username is already registered');
+        throw new ConflictException('The email is already registered');
       }
       throw new InternalServerErrorException('Error registering user');
     }
