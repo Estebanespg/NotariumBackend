@@ -2,10 +2,13 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UsersService } from 'src/users/users.service';
+import * as bcrypt from 'bcrypt';
+import { LoginUserDto } from 'src/users/dto/login-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -32,5 +35,28 @@ export class AuthService {
       }
       throw new InternalServerErrorException('Error registering user');
     }
+  }
+
+  async signIn(loginUserDto: LoginUserDto): Promise<{ access_token: string }> {
+    let user;
+
+    try {
+      user = await this.usersService.findOne(loginUserDto.email);
+    } catch (error) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      loginUserDto.password,
+      user.password,
+    );
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const payload = { sub: user.id, username: user.username };
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+    };
   }
 }
